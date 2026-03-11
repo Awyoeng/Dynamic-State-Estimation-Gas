@@ -1,0 +1,33 @@
+ k_outlier = 5;
+k2_outlier = 10;
+k3_outlier = 100;
+  
+  
+  %% Around line 183
+    for m = 1:nS
+        if is_very_big_outlier(m)
+            z_use(m) = y_pred(m);   % hard replacement
+        end
+    end
+  
+  
+  
+  %%
+  
+  % Outlier detection
+    is_outlier = abs(nu_physical) > k_outlier * sigma_est;
+    is_big_outlier=abs(nu_physical) > k2_outlier * sigma_est;
+    is_very_big_outlier=abs(nu_physical) > k3_outlier * sigma_est;
+    % Adaptive R
+    R_adaptive = R_curr;
+    for m = 1:nS
+        if is_outlier(m)
+            R_adaptive(m, m) =  abs(nu_physical(m))/k_outlier; % R(m, m) * 100; %% Huber weight function
+        elseif is_big_outlier(m,m)
+            R_adaptive(m, m) =  (k3_ouliter-k2_outlier)/(k_outlier*(k3_outlier/abs(nu_physical(m))-1)); % R(m, m) * 100; %% Huber weight function
+        elseif is_very_big_outlier(m,m)
+            R_adaptive(m, m) = 1e6;
+        end
+    end
+	
+	    S = H * P_pred * H' + R_adaptive;
